@@ -1,12 +1,24 @@
 import re
 from nodes.leaf_node import LeafNode
 from nodes.text_node import TextType, TextNode
+from nodes.parent_node import ParentNode
+from nodes.html_node import HTMLNode
+from enum import Enum
+
+
+class BlockType(Enum):
+    PARAGRAPH = "paragraph"
+    HEADING = "heading"
+    CODE = "code"
+    QUOTE = "quote"
+    UN_LIST = "unordered_list"
+    OR_LIST = "ordered_list"
 
 
 def text_to_html_node(text_node):
     match (text_node.text_type):
         case TextType.TEXT:
-            return LeafNode(None, text_node.text)
+            return LeafNode(None, text_node.text.replace("\n", " "))
         case TextType.BOLD:
             return LeafNode("b", text_node.text)
         case TextType.ITALIC:
@@ -45,8 +57,7 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                     new_nodes.append(old_node)
         return new_nodes
     else:
-        raise Exception("No delimeter found")
-        parts = old_nodes.split(delimiter)
+        return old_nodes
 
 
 def extract_markdown_images(text):
@@ -118,3 +129,64 @@ def text_to_textnodes(text):
     result = split_nodes_image(result)
     result = split_nodes_link(result)
     return result
+
+
+def markdown_to_blocks(markdown):
+    return markdown.strip().split("\n\n")
+
+
+def block_to_block_type(block):
+    if re.match("^#{1,9}", block):
+        return BlockType.HEADING
+    if re.match("^```", block):
+        return BlockType.CODE
+    if re.match("^>", block):
+        return BlockType.QUOTE
+    if re.match("^-", block):
+        return BlockType.UN_LIST
+    if re.match("^\d{1,3}\. ", block):
+        return BlockType.OR_LIST
+    return BlockType.PARAGRAPH
+
+
+def match_type_to_tag(block_type):
+    match (block_type):
+        case BlockType.HEADING:
+            return "h1"
+        case BlockType.CODE:
+            return "code"
+        case BlockType.QUOTE:
+            return "backquote"
+        case BlockType.UN_LIST:
+            return "ul"
+        case BlockType.OR_LIST:
+            return "ol"
+        case _:
+            return "p"
+
+
+def text_to_children(text):
+    children_text = text_to_textnodes(text)
+    children = []
+    for child in children_text:
+        tag = text_to_html_node(child)
+        children.append(tag)
+    return children
+
+
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    html_tags = []
+    for block in blocks:
+        block_type = block_to_block_type(block)
+        tag = match_type_to_tag(block_type)
+        if block_type != BlockType.CODE:
+            children = text_to_children(block)
+            html_block = ParentNode(tag=tag, children=children)
+            html_tags.append(html_block)
+        else:
+            code_block = text_to_html_node(
+                TextNode(block.replace("```", "").replace("\n", "", 1), TextType.CODE))
+            pre_block = ParentNode(tag="pre", children=[code_block])
+            html_tags.append(pre_block)
+    return ParentNode(tag="div", children=html_tags)
