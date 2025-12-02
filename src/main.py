@@ -4,9 +4,7 @@ import sys
 
 
 def main():
-    base_path = sys.argv[0]
-    if base_path == None:
-        base_path = "/"
+    base_path = sys.argv[1] if len(sys.argv) > 1 else "/"
     remove_dir()
     time.sleep(1)
     copy_static_files_to_static()
