@@ -263,11 +263,9 @@ def generate_page(from_path, template_path, dest_path, base_path):
             template_file_content = template_file_content.replace(
                 "{{ Content }}", html)
             template_file_content = template_file_content.replace(
-                'href="/', 'href="{base_path}')
+                'href="/', f'href="{base_path}')
             template_file_content = template_file_content.replace(
-                'href="/"', f'href="{base_path}"')
-            template_file_content = template_file_content.replace(
-                'src="/', 'src="{base_path}')
+                'src="/', f'src="{base_path}')
             with open(dest_path, "w") as page:
                 page.write(template_file_content)
 
