@@ -129,7 +129,7 @@ just text
         blocks = markdown_to_blocks(md)
         blocktypes = []
         for block in blocks:
-            blocktypes.append(block_to_block_type(block))
+            blocktypes.append(get_block_type(block))
         self.assertEqual(
             blocktypes,
             [
@@ -168,10 +168,23 @@ the **same** even with inline stuff
 
         node = markdown_to_html_node(md)
         html = node.to_html()
-        print("html", html)
         self.assertEqual(
             html,
             "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
+        )
+
+    def test_extract_title(self):
+        md = """######### Title
+
+```
+This is text that _should_ remain
+the **same** even with inline stuff
+```
+"""
+        title_text = extract_title(md)
+        self.assertEqual(
+            title_text,
+            "Title",
         )
 
 

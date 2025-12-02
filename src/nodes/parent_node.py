@@ -6,16 +6,16 @@ class ParentNode(HTMLNode):
         super().__init__(tag=tag, children=children, props=props)
 
     def to_html(self):
-        if not self.tag:
+        if self.tag is None:
             raise ValueError("Tag is required!")
-        elif self.children == None:
+        if self.children is None:
             raise ValueError("Parent node should have at least 1 child node!")
-        else:
-            props = self.props_to_html()
-            children = ""
-            for child in self.children:
+        props = self.props_to_html()
+        children = ""
+        for child in self.children:
+            if child != None:
                 children += child.to_html()
-            return f"<{self.tag}{props}>{children}</{self.tag}>"
+        return f"<{self.tag}{props}>{children}</{self.tag}>"
 
     def props_to_html(self):
         if self.props == None or len(self.props) == 0:
@@ -26,4 +26,4 @@ class ParentNode(HTMLNode):
         return inline_props
 
     def __repr__(self):
-        return f"{self.tag} | {self.value}"
+        return f"ParentNode({self.tag}, children: {self.children}, {self.props})"
